@@ -15,6 +15,8 @@ INC += phytronAxisMotor.h
 
 phytronAxisMotor_LIBS += motor
 phytronAxisMotor_LIBS += asyn
+phytronAxisMotor_LIBS += alglib
+alglib_DIR  += /usr/lib/x86_64-linux-gnu/
 phytronAxisMotor_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 #===========================

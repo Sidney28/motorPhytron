@@ -9,16 +9,17 @@ Cosylab d.d. 2014
 
 #include "asynMotorController.h"
 #include "asynMotorAxis.h"
+#include <interpolation.h>
 
 
 //Number of controller specific parameters
-#define NUM_PHYTRON_PARAMS 29
+#define NUM_PHYTRON_PARAMS 42
 
 #define MAX_VELOCITY      40000 //steps/s
 #define MIN_VELOCITY      1     //steps/s
 
-#define MAX_ACCELERATION  500000  // steps/s^2
-#define MIN_ACCELERATION  4000    // steps/s^2
+#define MAX_ACCELERATION  40000  // steps/s^2
+#define MIN_ACCELERATION  1      // steps/s^2
 
 //Controller parameters
 #define controllerStatusString      "CONTROLLER_STATUS"
@@ -52,6 +53,26 @@ Cosylab d.d. 2014
 #define currentDelayTimeString      "CURRENT_DELAY_TIME"
 #define axisResetString             "AXIS_RESET"
 #define axisStatusResetString       "AXIS_STATUS_RESET"
+
+#define enableEncRevCounterStirng    "ENABLE_ENC_REV_COUNTER"
+#define encoderRevolutionCountString "ENCODER_REVOLUTION_COUNT"
+
+#define motorRecEncoderResolutionString "MOTOR_REC_ENCODER_RESOLUTION"
+#define profileCurrentFollowingErrorString "PROFILE_CUR_FOL_ERR"
+#define profileControlFrequencyString "PROFILE_CONTROL_FREQUENCY"
+#define profileControlVeloString "PROFILE_CONTROL_VELO"
+
+#define profileCorrectionString "PROFILE_CORRECTION"
+#define profileCorrectionEnableString "PROFILE_CORRECTION_ENABLE"
+#define profileCorrectionMaximumString "PROFILE_CORRECTION_MAX_ALLOWABLE"
+
+//JVEL and JAR
+#define motorJogVeloString "MOTOR_JOGVELO"
+#define motorJogAccString "MOTOR_JOGACC"
+
+// max allowable profile following error
+#define profileFollowingErrorAllowableString "PROFILE_FOLLOWING_ERROR_ALLOWABLE"
+#define profileFollowingErrorExceedAllowableValueString "PROFILE_FOLLOWING_ERROR_EXCEED_ALLOWABLE_VALUE"
 
 typedef enum {
   phytronSuccess,
@@ -97,7 +118,44 @@ public:
   asynStatus setEncoderRatio(double ratio);
   asynStatus setEncoderPosition(double position);
 
+  virtual asynStatus setPGain(double pGain);
+  virtual asynStatus setIGain(double iGain);
+  virtual asynStatus setDGain(double dGain);
+
+  virtual asynStatus initializeProfile(size_t maxPoints);
+  virtual asynStatus defineProfile(double *positions, size_t numPoints);
+  virtual asynStatus buildProfile();
+  virtual asynStatus executeProfile();
+  virtual asynStatus abortProfile();
+  virtual asynStatus readbackProfile();
+  
+  asynStatus axisProfileControl();
+  
   float axisModuleNo_; //Used by sprintf to form commands
+protected:
+  
+  double pGain;
+  double iGain;
+  double dGain;
+ 
+  double profileErrorIntegral;
+ 
+  int axisMovingDirection;  
+  
+  int encoderRevolutionCountEnabled;
+  int encoderRevolutionCount;
+  int lastPoolEncoderPosition;
+
+  // corrections for profile with double loopback
+  double profileCorrection;
+  int profileCorrectionEnable;
+  double profileCorrectionMaximum;
+
+  // max allowable profile following error
+  double profileFollowingErrorAllowable;
+  int profileFollowingErrorExceedAllowableValue;
+  // used for profile move
+  alglib::spline1dinterpolant profileSpline;
 
 private:
   phytronController *pC_;          /**< Pointer to the asynMotorController to which this axis belongs.
@@ -105,19 +163,28 @@ private:
 
   phytronStatus setVelocity(double minVelocity, double maxVelocity, int moveType);
   phytronStatus setAcceleration(double acceleration, int movementType);
-
-  phytronStatus lastStatus;
   size_t response_len;
-
 friend class phytronController;
 };
 
 class phytronController : public asynMotorController {
 public:
-  phytronController(const char *portName, const char *phytronPortName, double movingPollPeriod, double idlePollPeriod, double timeout);
+  phytronController(const char *portName, const char *phytronPortName, double movingPollPeriod, double idlePollPeriod, double timeout, int profilemaxpoints);
   asynStatus readInt32(asynUser *pasynUser, epicsInt32 *value);
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   asynStatus readFloat64(asynUser *pasynUser, epicsFloat64 *value);
+  virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  
+  asynStatus writeFloat64Array(asynUser *pasynUser, epicsFloat64 *value, size_t nElements);
+  asynStatus readFloat64Array(asynUser *pasynUser, epicsFloat64 *value, size_t nElements, size_t *nRead);
+
+  virtual asynStatus initializeProfile(size_t maxPoints);
+  virtual asynStatus buildProfile();
+  virtual asynStatus executeProfile();
+  virtual asynStatus abortProfile();
+  virtual asynStatus readbackProfile();
+  
+  void profileExecuter();
 
   void report(FILE *fp, int level);
   phytronAxis* getAxis(asynUser *pasynUser);
@@ -134,6 +201,7 @@ public:
   std::vector<phytronAxis*> axes;
 
 protected:
+
   //Additional parameters used by additional records
   int axisStatus_;
   int controllerStatus_;
@@ -164,10 +232,34 @@ protected:
   int axisReset_;
   int axisStatusReset_;
   int controllerStatusReset_;
+  int enableEncRevCounter_;
+  int encoderRevolutionCount_;
+  
+  // profile move
+  int motorRecEncoderResolution_;
+  int profileCurrentFollowingError_;
+  int profileControlFrequency_;
+  int profileControlVelo_;
 
+  // corrections for profile with double loopback
+  int profileCorrection_;
+  int profileCorrectionEnable_;
+  int profileCorrectionMaximum_;
+
+  // max allowable profile following error
+  int profileFollowingErrorAllowable_;
+  int profileFollowingErrorExceedAllowableValue_;
+  
+  int motorJogVelo_;
+  int motorJogAcc_;
 private:
   double timeout_;
-  phytronStatus lastStatus;
+  epicsEventId profileControlEventId_;
+  
 
+  //parameters used for profile move
+  int profileExecuterIsRunning;
+  int profileExecuterAbort;
+  
 friend class phytronAxis;
 };

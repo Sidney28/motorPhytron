@@ -5,6 +5,8 @@ Authors: Tom Slejko, Bor Marolt, Cosylab d.d.
 		tom.slejko@cosylab.com
 		bor.marolt@cosylab.com
 
+Modification: Zhurov Dmitriy <sidney28@yandex.ru> (absolute encoder revolution counting, axis profile execution)
+
 ********************************************************************************
 Table of contents:
 - Controller and axis configuration

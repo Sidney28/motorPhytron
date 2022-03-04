@@ -19,5 +19,114 @@ record(motor,"$(P)$(M)")
 	field(DLLM,"$(DLLM)")
 	field(INIT,"$(INIT)")
 	field(TWV,"1")
+	field(RDBL,"$(RDBL) NPP MS")
 }
 
+
+
+# These records make the motor resolution, offset and direction available to the driver
+# which is needed for profile moves and other applications
+
+# Motor direction for this axis
+record(longout,"$(P)$(M)Direction") {
+    field(DESC, "$(M) direction")
+    field(DOL,  "$(P)$(M).DIR CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_REC_DIRECTION")
+}
+
+
+# Motor offset for this axis
+record(ao,"$(P)$(M)Offset") {
+    field(DESC, "$(M) offset")
+    field(DOL,  "$(P)$(M).OFF CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_REC_OFFSET")
+    field(PREC, "$(PREC)")
+}
+
+
+# Motor resolution for this axis
+record(ao,"$(P)$(M)Resolution") {
+    field(DESC, "$(M) resolution")
+    field(DOL,  "$(P)$(M).MRES CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_REC_RESOLUTION")
+    field(PREC, "$(PREC)")
+}
+
+# Encoder resolution for this axis
+record(ao,"$(P)$(M)EncoderResolution") {
+    field(DESC, "$(M) encoder resolution")
+    field(DOL,  "$(P)$(M).ERES CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_REC_ENCODER_RESOLUTION")
+    field(PREC, "$(PREC)")
+}
+
+record(ao,"$(P)$(M)PGain") {
+    field(DESC, "$(M) PGain")
+    field(DOL,  "$(P)$(M).PCOF CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_PGAIN")
+    field(PREC, "$(PREC)")
+}
+
+record(ao,"$(P)$(M)IGain") {
+    field(DESC, "$(M) IGain")
+    field(DOL,  "$(P)$(M).ICOF CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_IGAIN")
+    field(PREC, "$(PREC)")
+}
+
+record(ao,"$(P)$(M)DGain") {
+    field(DESC, "$(M) DGain")
+    field(DOL,  "$(P)$(M).DCOF CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_DGAIN")
+    field(PREC, "$(PREC)")
+}
+
+record(ao,"$(P)$(M)JogVelo") {
+    field(DESC, "$(M) JogVelo")
+    field(DOL,  "$(P)$(M).JVEL CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_JOGVELO")
+    field(PREC, "$(PREC)")
+}
+
+record(ao,"$(P)$(M)JogAcc") {
+    field(DESC, "$(M) JogAcc")
+    field(DOL,  "$(P)$(M).JAR CP MS")
+    field(OMSL, "closed_loop")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR))MOTOR_JOGACC")
+    field(PREC, "$(PREC)")
+}
+
+##
+# profile following errors (current)
+##
+
+record(ai,"$(P)$(M)ProfileFollowingError") {
+    field(DESC, "Current Profile following error")
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR))PROFILE_CUR_FOL_ERR")
+    field(SCAN, "I/O Intr")
+    field(PREC, "5")
+}
+
+record(ao,"$(P)$(M)-MOTOR-POSITION_SET") {
+    field(DESC, "$(M) Motor Position")
+    field(DTYP,"asynFloat64")
+    field(OUT,"@asyn($(PORT),$(ADDR),1)MOTOR_POSITION")
+}

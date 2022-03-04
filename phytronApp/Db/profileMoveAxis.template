@@ -1,0 +1,192 @@
+# Database for profile moves with asynMotor
+# This is the database for the each axis, profileMoveController is the file
+# for the controller.
+#
+#    Mark Rivers
+#    April 3, 2011
+#
+#
+# Macro paramters:
+#   $(P)         - PV name prefix
+#   $(R)         - PV base record name
+#   $(M)         - PV motor name
+#   $(NPOINTS)   - Maximum profile points
+#   $(NREADBACK) - Maximum number of readback positions
+#   $(PORT)      - asyn port for this controller
+#   $(ADDR)      - asyn addr for this axis
+#   $(TIMEOUT)   - asyn timeout for this axis
+#   $(PREC)      - Precision for this axis
+
+#
+# Is this axis involved in the profile move?
+#
+record(bo,"$(P)$(R)M$(M)UseAxis") {
+    field(DESC, "Use axis $(ADDR)?")
+    field(PINI, "YES")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PROFILE_USE_AXIS")
+    field(VAL,  "0")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+#
+# Target position array for this axis
+#
+record(waveform,"$(P)$(R)M$(M)Positions") {
+    field(DESC, "Axis $(ADDR) positions")
+    field(DTYP, "asynFloat64ArrayOut")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PROFILE_POSITIONS")
+    field(NELM, "$(NPOINTS)")
+    field(FTVL, "DOUBLE")
+    field(PREC, "$(PREC)")
+}
+
+#
+# Readback position array for this axis
+#
+record(waveform,"$(P)$(R)M$(M)Readbacks") {
+    field(DESC, "Axis $(ADDR) readbacks")
+    field(DTYP, "asynFloat64ArrayIn")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PROFILE_READBACKS")
+    field(NELM, "$(NREADBACK)")
+    field(FTVL, "DOUBLE")
+    field(PREC, "$(PREC)")
+    field(SCAN, "I/O Intr")
+}
+
+#
+# Following error array for this axis
+#
+record(waveform,"$(P)$(R)M$(M)FollowingErrors") {
+    field(DESC, "Axis $(ADDR) following errors")
+    field(DTYP, "asynFloat64ArrayIn")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PROFILE_FOLLOWING_ERRORS")
+    field(NELM, "$(NREADBACK)")
+    field(FTVL, "DOUBLE")
+    field(PREC, "$(PREC)")
+    field(SCAN, "I/O Intr")
+}
+
+
+##
+# profile following errors (current)
+##
+
+record(ai,"$(P)$(R)M$(M)ProfileFollowingError") {
+    field(DESC, "Current Profile following error")
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR))PROFILE_CUR_FOL_ERR")
+    field(SCAN, "I/O Intr")
+    field(PREC, "5")
+}
+
+record(ai,"$(P)$(R)M$(M)ProfileControlVelo") {
+    field(DESC, "Current Profile control velo")
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR))PROFILE_CONTROL_VELO")
+    field(SCAN, "I/O Intr")
+    field(PREC, "5")
+}
+
+##
+# corrections for profile with double loopback
+##
+
+record(ai,"$(P)$(R)M$(M)ProfileCorrectionValue_RBV") {                                                             
+    field(DESC, "Current Profile Correction Value")                                                            
+    field(DTYP, "asynFloat64")                                                                                
+    field(INP,  "@asyn($(PORT),$(ADDR))PROFILE_CORRECTION")                                                  
+    field(SCAN, "I/O Intr")                                                                                   
+    field(PREC, "5")                                                                                          
+}                                                                                                             
+          
+# TODO: fix kostil                                                                                                    
+record(ao,"$(P)$(R)M$(M)ProfileCorrectionValue_ITNL") {                                                                
+    field(DESC, "Current Profile Correction Value")                                                               
+    field(DTYP, "asynFloat64")                                                                                
+    field(OUT,  "@asyn($(PORT),$(ADDR),1)PROFILE_CORRECTION")                                                 
+    field(VAL,  "0")
+    field(DOL,  "$(CORRECTION) NPP MS")
+    field(SCAN, ".5 second")
+    field(OMSL, "closed_loop")
+    field(PREC, "5")                                                                                          
+}
+
+record(ao,"$(P)$(R)M$(M)ProfileCorrectionValue") {                                                           
+    field(DESC, "Current Profile Correction Value")                                                           
+    field(DTYP, "asynFloat64")                                                                                
+    field(OUT,  "@asyn($(PORT),$(ADDR),1)PROFILE_CORRECTION")                                                 
+    field(VAL,  "0")                                                                                          
+    field(PREC, "5")                                                                                          
+}
+
+record(ai,"$(P)$(R)M$(M)ProfileCorrectionEnable_RBV") {                                                        
+    field(DESC, "Profile Correction Enable")                                                           
+    field(DTYP, "asynInt32")                                                                                
+    field(INP,  "@asyn($(PORT),$(ADDR))PROFILE_CORRECTION_ENABLE")                                                   
+    field(SCAN, "I/O Intr")                                                                                   
+    field(PREC, "0")                                                                                          
+}                                                                                                             
+                                                                                                              
+record(ao,"$(P)$(R)M$(M)ProfileCorrectionEnable") {                                                            
+    field(DESC, "Profile Correction Enable")                                                           
+    field(DTYP, "asynInt32")                                                                                
+    field(OUT,  "@asyn($(PORT),$(ADDR),1)PROFILE_CORRECTION_ENABLE")                                                   
+    field(VAL,  "0")
+    field(PREC, "0")                                                                                          
+}
+
+record(ai,"$(P)$(R)M$(M)ProfileCorrectionMaximum_RBV") {                                                        
+    field(DESC, "Profile Correction Maximum Value")                                                           
+    field(DTYP, "asynFloat64")                                                                                
+    field(INP,  "@asyn($(PORT),$(ADDR))PROFILE_CORRECTION_MAX_ALLOWABLE")                                                   
+    field(SCAN, "I/O Intr")                                                                                   
+    field(PREC, "3")                                                                                          
+}                                                                                                             
+                                                                                                              
+record(ao,"$(P)$(R)M$(M)ProfileCorrectionMaximum") {                                                            
+    field(DESC, "Profile Correction Maximum Value")                                                           
+    field(DTYP, "asynFloat64")                                                                                
+    field(OUT,  "@asyn($(PORT),$(ADDR),1)PROFILE_CORRECTION_MAX_ALLOWABLE")                                                   
+    field(VAL,  "0")                                                                                          
+    field(PREC, "3")                                                                                          
+}
+
+##
+#  max allowable profile following error
+##
+
+#define profileFollowingErrorAllowableString "PROFILE_FOLLOWING_ERROR_ALLOWABLE"                              
+#define profileFollowingErrorExceedAllowableValueString "PROFILE_FOLLOWING_ERROR_EXCEED_ALLOWABLE_VALUE" 
+
+record(ai,"$(P)$(R)M$(M)ProfileFollowingErrorAllowable_RBV") {                                                       
+    field(DESC, "Profile Following Error Allowable")                                                                  
+    field(DTYP, "asynFloat64")                                                                                
+    field(INP,  "@asyn($(PORT),$(ADDR))PROFILE_FOLLOWING_ERROR_ALLOWABLE")                                            
+    field(SCAN, "I/O Intr")                                                                                   
+    field(PREC, "3")                                                                                          
+}                                                                                                             
+                                                                                                              
+record(ao,"$(P)$(R)M$(M)ProfileFollowingErrorAllowable") {                                                           
+    field(DESC, "Profile Following Error Allowable")                                                                  
+    field(DTYP, "asynFloat64")                                                                                
+    field(OUT,  "@asyn($(PORT),$(ADDR),1)PROFILE_FOLLOWING_ERROR_ALLOWABLE")                                            
+    field(VAL,  "0")                                                                                          
+    field(PREC, "3")                                                                                          
+}                                                                                                             
+                                                                                                             
+record(ai,"$(P)$(R)M$(M)ProfFolErrExceedAllowValue_RBV") {                                                       
+    field(DESC, "Profile Following Error Exceed")                                                                  
+    field(DTYP, "asynInt32")                                                                                  
+    field(INP,  "@asyn($(PORT),$(ADDR))PROFILE_FOLLOWING_ERROR_EXCEED_ALLOWABLE_VALUE")                                            
+    field(SCAN, "I/O Intr")                                                                                   
+    field(PREC, "0")                                                                                          
+}                                                                                                             
+                                                                                                              
+record(ao,"$(P)$(R)M$(M)ProfFolErrExceedAllowValue") {                                                           
+    field(DESC, "Profile Following Error Allowable")                                                                  
+    field(DTYP, "asynInt32")                                                                                  
+    field(OUT,  "@asyn($(PORT),$(ADDR),1)PROFILE_FOLLOWING_ERROR_EXCEED_ALLOWABLE_VALUE")                                            
+    field(VAL,  "0")                                                                                          
+    field(PREC, "0")                                                                                          
+} 

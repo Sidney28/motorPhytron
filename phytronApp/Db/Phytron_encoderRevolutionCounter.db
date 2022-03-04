@@ -1,0 +1,40 @@
+# Database for Encoder revolution counter in phytron controller
+#    Dmitriy Zhurov
+#    Sep 13, 2017
+#
+#
+# Macro paramters:
+#   $(P)         - PV name prefix
+#   $(M)         - PV motor name
+#   $(PORT)      - asyn port for this controller
+#   $(ADDR)      - asyn addr for this axis
+#   $(TIMEOUT)   - asyn timeout for this axis
+
+record(bo,"$(P)$(M)EnableEncRevCounter") {
+    field(DESC, "Use EncRevCounter axis $(ADDR)?")
+    field(PINI, "YES")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENABLE_ENC_REV_COUNTER")    
+    field(VAL, "1")
+    field(ZNAM, "No")
+    field(ONAM, "Yes")
+}
+
+record(ao,"$(P)$(M)EncoderRevolutionCount") {
+    field(DESC, "Set Encoder Revolution Count")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENCODER_REVOLUTION_COUNT")
+#    field(SCAN, "passive")
+#    field(OMSL, "closed_loop")
+#    field(DOL, "$(P)$(M)EncoderRevolutionCount_RBV")
+}
+
+record(ai,"$(P)$(M)EncoderRevolutionCount_RBV") {
+    field(DESC, "Set Encoder Revolution Count")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENCODER_REVOLUTION_COUNT")
+    field(SCAN, "I/O Intr")
+#    field(FLNK,"$(P)$(M)EncoderRevolutionCount")
+}
+
+

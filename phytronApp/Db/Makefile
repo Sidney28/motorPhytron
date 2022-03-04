@@ -14,7 +14,9 @@ include $(TOP)/configure/CONFIG
 DB += Phytron_I1AM01.db
 DB += Phytron_MCM01.db
 DB += Phytron_motor.db
-
+DB += Phytron_encoderRevolutionCounter.db 
+DB += profileMoveAxis.template 
+DB += profileMoveController.template
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add
 # <anyname>_template = <templatename>
